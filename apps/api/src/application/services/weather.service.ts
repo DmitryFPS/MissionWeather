@@ -12,6 +12,13 @@ import { createOpenMeteoProviders } from '../../infrastructure/weather/open-mete
 import { YandexWeatherProvider } from '../../infrastructure/weather/yandex-weather.provider';
 import { AviationWeatherMetarProvider } from '../../infrastructure/weather/aviation-weather.provider';
 import { CheckWxMetarProvider } from '../../infrastructure/weather/checkwx.provider';
+import { OpenWeatherProvider } from '../../infrastructure/weather/openweather.provider';
+import { VisualCrossingProvider } from '../../infrastructure/weather/visual-crossing.provider';
+import { TomorrowIoProvider } from '../../infrastructure/weather/tomorrow-io.provider';
+import { WeatherbitProvider } from '../../infrastructure/weather/weatherbit.provider';
+import { MetNorwayProvider } from '../../infrastructure/weather/met-norway.provider';
+import { ForecaProvider } from '../../infrastructure/weather/foreca.provider';
+import { RedisCacheService } from '../../infrastructure/cache/redis-cache.service';
 
 interface CircuitState {
   failures: number;
@@ -24,15 +31,23 @@ export class WeatherService {
   private readonly fusion = new FusionService();
   private readonly decision = new DecisionEngine();
   private readonly circuits = new Map<string, CircuitState>();
-  private readonly cache = new Map<string, { at: number; data: WeatherSnapshot }>();
   private readonly CACHE_TTL_MS = 10 * 60 * 1000;
 
-  constructor(config: ConfigService) {
+  constructor(
+    config: ConfigService,
+    private readonly cache: RedisCacheService,
+  ) {
     this.providers = [
       ...createOpenMeteoProviders(),
       new YandexWeatherProvider(config.get('YANDEX_WEATHER_KEY', '')),
       new AviationWeatherMetarProvider(),
       new CheckWxMetarProvider(config.get('CHECKWX_KEY', '')),
+      new OpenWeatherProvider(config.get('OPENWEATHER_KEY', '')),
+      new VisualCrossingProvider(config.get('VISUAL_CROSSING_KEY', '')),
+      new TomorrowIoProvider(config.get('TOMORROW_IO_KEY', '')),
+      new WeatherbitProvider(config.get('WEATHERBIT_KEY', '')),
+      new MetNorwayProvider(),
+      new ForecaProvider(config.get('FORECA_KEY', '')),
     ];
   }
 
@@ -63,16 +78,16 @@ export class WeatherService {
     await Promise.all(
       active.map(async (provider) => {
         if (this.isCircuitOpen(provider.id)) return;
-        const cacheKey = `${provider.id}:${query.lat.toFixed(3)}:${query.lon.toFixed(3)}:${query.timestamp ?? 'now'}`;
-        const cached = this.cache.get(cacheKey);
-        if (cached && Date.now() - cached.at < this.CACHE_TTL_MS) {
-          snapshots.push(cached.data);
+        const cacheKey = `wx:${provider.id}:${query.lat.toFixed(3)}:${query.lon.toFixed(3)}:${query.timestamp ?? 'now'}`;
+        const cached = await this.cache.getJson<WeatherSnapshot>(cacheKey);
+        if (cached) {
+          snapshots.push(cached);
           return;
         }
         try {
           const snap = await provider.fetch(query);
           if (snap) {
-            this.cache.set(cacheKey, { at: Date.now(), data: snap });
+            await this.cache.setJson(cacheKey, snap, this.CACHE_TTL_MS);
             snapshots.push(snap);
             this.resetCircuit(provider.id);
           }
