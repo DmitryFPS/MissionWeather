@@ -1,4 +1,12 @@
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+const DEFAULT_PORT = '3001';
+
+function resolveApiBase(): string {
+  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+  if (typeof window !== 'undefined') {
+    return `${window.location.protocol}//${window.location.hostname}:${DEFAULT_PORT}`;
+  }
+  return `http://localhost:${DEFAULT_PORT}`;
+}
 
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -15,7 +23,7 @@ export function clearToken() {
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const token = getToken();
-  const res = await fetch(`${API}${path}`, {
+  const res = await fetch(`${resolveApiBase()}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
@@ -39,4 +47,8 @@ export async function login(email: string, password: string) {
     '/auth/login',
     { method: 'POST', body: JSON.stringify({ email, password }) },
   );
+}
+
+export function apiBaseUrl() {
+  return resolveApiBase();
 }

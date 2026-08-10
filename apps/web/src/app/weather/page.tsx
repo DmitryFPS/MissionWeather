@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { api } from '@/lib/api';
-import { YandexMap } from '@/components/YandexMap';
+import { MissionMap } from '@/components/MissionMap';
 
 interface EvaluateResult {
   verdict: { status: string; reasons: { parameter: string; value: unknown }[]; confidence: string };
@@ -79,7 +79,7 @@ export default function WeatherPage() {
           </button>
         </div>
         <div className="card">
-          <YandexMap center={{ lat, lon }} points={[{ lat, lon, label: 'Точка проверки' }]} />
+          <MissionMap center={{ lat, lon }} points={[{ lat, lon, label: 'Точка проверки' }]} />
         </div>
       </div>
       {result && (

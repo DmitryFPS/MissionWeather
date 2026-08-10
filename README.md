@@ -1,53 +1,44 @@
 # MissionWeather
 
-Production-ready сервис погоды и решения **GO / CAUTION / NO-GO** для самолётного БПЛА наблюдения (полёты 1–10 ч).
+Production-ready сервис **GO / CAUTION / NO-GO** для БПЛА наблюдения (1–10 ч).
+
+## Запуск сервера на этом ПК (Docker)
+
+```powershell
+.\scripts\start-server.ps1
+```
+
+Или вручную:
+
+```powershell
+docker compose up -d --build
+```
+
+| URL | Описание |
+|-----|----------|
+| http://localhost:3000 | Web UI |
+| http://localhost:3001 | API |
+| http://localhost:3001/docs | Swagger |
+
+**Admin:** `admin@missionweather.local` / `admin123`
+
+Подробнее: [docs/SERVER-PC.md](docs/SERVER-PC.md)
 
 ## Стек
 
-- **API:** NestJS, Clean Architecture, PostgreSQL, Redis
-- **Web:** Next.js PWA, Яндекс.Карты, адаптив UI
-- **Mobile:** Capacitor (Android)
-- **ИИ:** RouterAI (советник, не меняет вердикт)
-- **12 агрегаторов погоды** с fusion, spread, circuit breaker
+- NestJS + PostgreSQL + Redis + 12 weather aggregators
+- Next.js PWA + OpenStreetMap (Leaflet)
+- RouterAI advisor
+- Docker Compose
 
-## Быстрый старт
+## LAN-доступ
 
-```bash
-cp .env.example .env
-docker compose up -d postgres redis
-npm install
-npm run dev:api
-npm run dev:web
-```
-
-- API: http://localhost:3001 · Swagger: http://localhost:3001/docs
-- Web: http://localhost:3000
-- Admin: `admin@missionweather.local` / `admin123`
-
-## Production
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
-```
-
-Подробнее: [docs/DEPLOY.md](docs/DEPLOY.md)
+С телефона/планшета в той же Wi‑Fi: `http://<IP-этого-ПК>:3000`  
+API определяется автоматически.
 
 ## Тесты
 
-```bash
+```powershell
 npm run test -w @mission-weather/api
-npm run test:e2e -w @mission-weather/api
-npm run build
+powershell -File scripts/human-runs.ps1
 ```
-
-## Структура
-
-```
-apps/api     — NestJS backend
-apps/web     — Next.js PWA
-apps/mobile  — Capacitor Android
-```
-
-## Лицензия
-
-Private / DmitryFPS

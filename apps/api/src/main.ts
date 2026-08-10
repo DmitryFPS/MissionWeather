@@ -21,7 +21,7 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, SwaggerModule.createDocument(app, config));
 
   const port = process.env.API_PORT ?? 3001;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   console.log(`MissionWeather API: http://localhost:${port}`);
   console.log(`Swagger: http://localhost:${port}/docs`);
 }

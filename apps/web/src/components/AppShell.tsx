@@ -16,11 +16,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [ready, setReady] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!getToken() && pathname !== '/login') router.replace('/login');
     else setReady(true);
   }, [pathname, router]);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
 
   if (!ready && pathname !== '/login') return null;
 
@@ -30,7 +35,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="shell">
       <header className="header">
         <strong>MissionWeather</strong>
-        <nav className="nav">
+        <button
+          type="button"
+          className="btn ghost nav-toggle"
+          aria-label="Меню"
+          onClick={() => setMenuOpen((v) => !v)}
+        >
+          ☰
+        </button>
+        <nav className={`nav ${menuOpen ? 'nav-open' : ''}`}>
           {links.map((l) => (
             <Link key={l.href} href={l.href} className={pathname === l.href ? 'active' : ''}>
               {l.label}

@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { api } from '@/lib/api';
+import { api, apiBaseUrl } from '@/lib/api';
 
 export default function DashboardPage() {
   const [health, setHealth] = useState('…');
   const [providers, setProviders] = useState(0);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'}/health`)
+    fetch(`${apiBaseUrl()}/health`)
       .then((r) => r.json())
       .then((d) => setHealth(d.status))
       .catch(() => setHealth('offline'));

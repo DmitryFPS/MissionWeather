@@ -153,3 +153,32 @@ label {
   padding: 1rem;
   opacity: 0.9;
 }
+
+.nav-toggle {
+  display: inline-flex;
+  min-width: 44px;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .nav-toggle {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .header {
+    position: relative;
+  }
+  .nav {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+  }
+  .nav.nav-open {
+    display: flex;
+  }
+  .nav a {
+    width: 100%;
+  }
+}

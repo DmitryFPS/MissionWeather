@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
-import { YandexMap } from '@/components/YandexMap';
+import { MissionMap } from '@/components/MissionMap';
 
 interface Profile { id: string; name: string }
 interface Mission { id: string; name: string; plannedDurationHours: number; waypoints: { lat: number; lon: number }[] }
@@ -92,7 +92,7 @@ export default function MissionsPage() {
           <button className="btn" type="button" onClick={create}>Создать маршрут</button>
         </div>
         <div className="card">
-          <YandexMap center={{ lat, lon }} points={mapPoints.length ? mapPoints : [{ lat, lon }]} height={360} />
+          <MissionMap center={{ lat, lon }} points={mapPoints.length ? mapPoints : [{ lat, lon }]} height={360} />
         </div>
       </div>
       {missions.map((m) => (

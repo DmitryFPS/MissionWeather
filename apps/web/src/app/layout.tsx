@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import 'leaflet/dist/leaflet.css';
 import './globals.css';
 import { AppShell } from '@/components/AppShell';
 import { PwaRegister } from '@/components/PwaRegister';

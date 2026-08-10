@@ -1,6 +1,7 @@
 services:
   postgres:
     image: postgis/postgis:16-3.4
+    restart: unless-stopped
     environment:
       POSTGRES_USER: mission
       POSTGRES_PASSWORD: mission
@@ -8,34 +9,38 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./data/postgres:/var/lib/postgresql/data
+      - missionweather_pg:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U mission -d missionweather"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
     ports:
       - "6379:6379"
     volumes:
-      - ./data/redis:/data
+      - missionweather_redis:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
-      retries: 5
+      retries: 10
 
   api:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
     ports:
       - "3001:3001"
     env_file:
       - .env
     environment:
+      NODE_ENV: production
+      API_PORT: 3001
       DATABASE_URL: postgresql://mission:mission@postgres:5432/missionweather
       REDIS_URL: redis://redis:6379
     depends_on:
@@ -48,9 +53,14 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NODE_ENV: production
     depends_on:
       - api
+
+volumes:
+  missionweather_pg:
+  missionweather_redis:
