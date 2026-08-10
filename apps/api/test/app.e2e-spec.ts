@@ -32,6 +32,6 @@ describe('MissionWeather E2E', () => {
 
   it('GET /weather/providers', () =>
     request(app.getHttpServer()).get('/weather/providers').expect(200).expect((res) => {
-      expect(res.body.length).toBe(6);
+      expect(res.body.length).toBe(12);
     }));
 });

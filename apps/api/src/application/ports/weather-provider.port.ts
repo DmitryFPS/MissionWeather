@@ -20,6 +20,12 @@ export const WEATHER_PROVIDER_IDS = [
   'yandex-weather',
   'aviation-weather-metar',
   'checkwx-metar',
+  'openweather',
+  'visual-crossing',
+  'tomorrow-io',
+  'weatherbit',
+  'met-norway',
+  'foreca',
 ] as const;
 
 export type WeatherProviderId = (typeof WEATHER_PROVIDER_IDS)[number];
