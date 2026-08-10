@@ -6,6 +6,7 @@ import { WeatherModule } from './presentation/weather/weather.module';
 import { AuthModule } from './presentation/auth/auth.module';
 import { ProfilesModule } from './presentation/profiles/profiles.module';
 import { MissionsModule } from './presentation/missions/missions.module';
+import { AiModule } from './presentation/ai/ai.module';
 import { JwtGlobalGuard } from './infrastructure/auth/jwt-global.guard';
 
 @Module({
@@ -16,6 +17,7 @@ import { JwtGlobalGuard } from './infrastructure/auth/jwt-global.guard';
     AuthModule,
     ProfilesModule,
     MissionsModule,
+    AiModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: JwtGlobalGuard }],
 })
