@@ -11,7 +11,7 @@ export class RedisCacheService implements OnModuleInit, OnModuleDestroy {
   constructor(private readonly config: ConfigService) {}
 
   get enabled(): boolean {
-    return Boolean(this.config.get('REDIS_URL'));
+    return this.client !== null;
   }
 
   async onModuleInit() {
@@ -20,9 +20,14 @@ export class RedisCacheService implements OnModuleInit, OnModuleDestroy {
       this.logger.warn('REDIS_URL не задан — локальный in-memory кэш');
       return;
     }
-    this.client = new Redis(url, { maxRetriesPerRequest: 2, lazyConnect: true });
-    await this.client.connect();
-    this.logger.log('Redis подключён');
+    try {
+      this.client = new Redis(url, { maxRetriesPerRequest: 2, lazyConnect: true });
+      await this.client.connect();
+      this.logger.log('Redis подключён');
+    } catch (err) {
+      this.logger.warn(`Redis недоступен (${String(err)}), in-memory кэш`);
+      this.client = null;
+    }
   }
 
   async onModuleDestroy() {

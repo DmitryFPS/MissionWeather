@@ -12,7 +12,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   constructor(private readonly config: ConfigService) {}
 
   get enabled(): boolean {
-    return Boolean(this.config.get('DATABASE_URL'));
+    return this.pool !== null;
   }
 
   async onModuleInit() {
@@ -21,9 +21,16 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       this.logger.warn('DATABASE_URL не задан — используется in-memory store');
       return;
     }
-    this.pool = new Pool({ connectionString: url, max: 10 });
-    await this.runMigrations();
-    this.logger.log('PostgreSQL подключён, миграции применены');
+    try {
+      this.pool = new Pool({ connectionString: url, max: 10 });
+      await this.pool.query('SELECT 1');
+      await this.runMigrations();
+      this.logger.log('PostgreSQL подключён, миграции применены');
+    } catch (err) {
+      this.logger.warn(`PostgreSQL недоступен (${String(err)}), in-memory store`);
+      await this.pool?.end().catch(() => undefined);
+      this.pool = null;
+    }
   }
 
   async onModuleDestroy() {
