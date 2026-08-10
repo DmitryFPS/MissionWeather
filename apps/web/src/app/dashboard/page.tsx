@@ -6,8 +6,12 @@ import { api, apiBaseUrl } from '@/lib/api';
 export default function DashboardPage() {
   const [health, setHealth] = useState('…');
   const [providers, setProviders] = useState(0);
+  const [fieldUrl, setFieldUrl] = useState('');
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setFieldUrl(`${window.location.protocol}//${window.location.hostname}:3000`);
+    }
     fetch(`${apiBaseUrl()}/health`)
       .then((r) => r.json())
       .then((d) => setHealth(d.status))
@@ -30,6 +34,18 @@ export default function DashboardPage() {
           <p>2. Проверьте погоду в точке или по маршруту</p>
           <p>3. Получите совет ИИ (не меняет GO/NO-GO)</p>
         </div>
+      </div>
+      <div className="card">
+        <h3>Телефон в поле (Tailscale)</h3>
+        <p>На Android: Tailscale + Chrome → добавить на главный экран.</p>
+        {fieldUrl && (
+          <p>
+            Закладка для поля: <strong>{fieldUrl}</strong>
+          </p>
+        )}
+        <p style={{ opacity: 0.8, fontSize: '0.9rem' }}>
+          После Tailscale используйте IP вида 100.x.y.z вместо 192.168… — см. docs/FIELD-ANDROID.md
+        </p>
       </div>
     </div>
   );

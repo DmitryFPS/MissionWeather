@@ -31,10 +31,21 @@ docker compose up -d --build
 - RouterAI advisor
 - Docker Compose
 
-## LAN-доступ
+## LAN-доступ (дома)
 
-С телефона/планшета в той же Wi‑Fi: `http://<IP-этого-ПК>:3000`  
-API определяется автоматически.
+С телефона в той же Wi‑Fi: `http://<IP-этого-ПК>:3000`
+
+## Телефон в поле (сервер далеко)
+
+**Tailscale VPN** — телефон и сервер в одной частной сети через интернет.
+
+```powershell
+.\scripts\setup-tailscale.ps1
+```
+
+На Android: Tailscale → тот же аккаунт → Chrome → `http://100.x.y.z:3000` → «На главный экран».
+
+Подробно: [docs/FIELD-ANDROID.md](docs/FIELD-ANDROID.md)
 
 ## Тесты
 
