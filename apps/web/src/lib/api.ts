@@ -24,6 +24,10 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
     },
   });
   if (!res.ok) {
+    if (res.status === 401 && typeof window !== 'undefined') {
+      clearToken();
+      window.location.href = '/login';
+    }
     const err = await res.text();
     throw new Error(err || res.statusText);
   }

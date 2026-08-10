@@ -4,6 +4,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { StoreService } from '../../infrastructure/store/store.service';
 import { WeatherService } from '../../application/services/weather.service';
 import { MissionTimelineService } from '../../domain/services/mission-timeline.service';
+import { normalizeThresholds } from '../../domain/services/thresholds.util';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { AuthUser } from '../auth/auth.decorators';
 
@@ -46,6 +47,7 @@ export class MissionsController {
     const mission = await this.store.getMission(id, user.id, user.role);
     const profile = await this.store.getProfile(mission.profileId, user.id, user.role);
     const start = startTime ? new Date(startTime) : new Date();
+    const thresholds = normalizeThresholds(profile.thresholds);
     const schedule = this.timeline.buildTimeline(mission.waypoints, profile.cruiseSpeedKmh, start);
 
     const points = await Promise.all(
@@ -53,7 +55,7 @@ export class MissionsController {
         this.weather
           .evaluate(
             { lat: tp.lat, lon: tp.lon, timestamp: tp.etaIso },
-            profile.thresholds,
+            thresholds,
             profile.fusionSourceIds.length ? profile.fusionSourceIds : undefined,
             profile.fusionWeights.length ? profile.fusionWeights : undefined,
           )

@@ -22,7 +22,7 @@ export default function DashboardPage() {
         <div className="card">
           <h3>API</h3>
           <p>Статус: {health}</p>
-          <p>Агрегаторов MVP: {providers}</p>
+          <p>Агрегаторов: {providers}</p>
         </div>
         <div className="card">
           <h3>Быстрые действия</h3>

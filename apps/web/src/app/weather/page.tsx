@@ -6,7 +6,7 @@ import { YandexMap } from '@/components/YandexMap';
 
 interface EvaluateResult {
   verdict: { status: string; reasons: { parameter: string; value: unknown }[]; confidence: string };
-  fused: { windSpeedMs: number; spread: { windSpeedMs: { min: number; max: number; avg: number } } };
+  fused: { windSpeedMs: number; spread: { windSpeedMs: { min: number; max: number; avg: number } } } | null;
   snapshots: { sourceId: string; windSpeedMs: number }[];
 }
 
@@ -86,8 +86,14 @@ export default function WeatherPage() {
         <div className="card">
           <h2 className={verdictClass}>Вердикт: {result.verdict.status}</h2>
           <p>Уверенность: {result.verdict.confidence}</p>
-          <p>Ветер (fusion): {result.fused.windSpeedMs.toFixed(1)} м/с</p>
-          <p>Разброс: {result.fused.spread.windSpeedMs.min.toFixed(1)} – {result.fused.spread.windSpeedMs.max.toFixed(1)}</p>
+          {result.fused ? (
+            <>
+              <p>Ветер (fusion): {result.fused.windSpeedMs.toFixed(1)} м/с</p>
+              <p>Разброс: {result.fused.spread.windSpeedMs.min.toFixed(1)} – {result.fused.spread.windSpeedMs.max.toFixed(1)}</p>
+            </>
+          ) : (
+            <p className="verdict-nogo">Нет данных от агрегаторов</p>
+          )}
           <ul>
             {result.snapshots.map((s) => (
               <li key={s.sourceId}>{s.sourceId}: {s.windSpeedMs.toFixed(1)} м/с</li>

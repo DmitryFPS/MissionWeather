@@ -5,9 +5,10 @@ import { Verdict, VerdictReason, VerdictStatus } from '../entities/verdict.entit
 function evaluateUpper(
   param: string,
   value: number,
-  range: { goMax?: number; cautionMax?: number },
+  range: { goMax?: number; cautionMax?: number } | undefined,
   ctx?: { segmentIndex?: number; hourOffset?: number },
 ): VerdictStatus | null {
+  if (!range) return null;
   if (range.goMax !== undefined && value <= range.goMax) return 'GO';
   if (range.cautionMax !== undefined && value <= range.cautionMax) return 'CAUTION';
   if (range.goMax !== undefined || range.cautionMax !== undefined) {
@@ -19,8 +20,9 @@ function evaluateUpper(
 function evaluateLower(
   param: string,
   value: number,
-  range: { goMin?: number; cautionMin?: number },
+  range: { goMin?: number; cautionMin?: number } | undefined,
 ): VerdictStatus | null {
+  if (!range) return null;
   if (range.goMin !== undefined && value >= range.goMin) return 'GO';
   if (range.cautionMin !== undefined && value >= range.cautionMin) return 'CAUTION';
   if (range.goMin !== undefined || range.cautionMin !== undefined) return 'NO_GO';
@@ -47,7 +49,7 @@ export class DecisionEngine {
       reasons.push({
         parameter: 'windSpeedMs',
         value: point.windSpeedMs,
-        limit: `go<=${thresholds.windSpeedMs.goMax}, caution<=${thresholds.windSpeedMs.cautionMax}`,
+        limit: `go<=${thresholds.windSpeedMs?.goMax ?? '—'}, caution<=${thresholds.windSpeedMs?.cautionMax ?? '—'}`,
         ...ctx,
       });
     }
@@ -59,7 +61,7 @@ export class DecisionEngine {
         reasons.push({
           parameter: 'windGustMs',
           value: point.windGustMs,
-          limit: `go<=${thresholds.windGustMs.goMax}`,
+          limit: `go<=${thresholds.windGustMs?.goMax ?? '—'}`,
           ...ctx,
         });
       }
@@ -72,7 +74,7 @@ export class DecisionEngine {
         reasons.push({
           parameter: 'visibilityKm',
           value: point.visibilityKm,
-          limit: `go>=${thresholds.visibilityKm.goMin}`,
+          limit: `go>=${thresholds.visibilityKm?.goMin ?? '—'}`,
           ...ctx,
         });
       }
@@ -90,7 +92,7 @@ export class DecisionEngine {
         reasons.push({
           parameter: 'precipitationMmH',
           value: point.precipitationMmH,
-          limit: `go<=${thresholds.precipitationMmH.goMax}`,
+          limit: `go<=${thresholds.precipitationMmH?.goMax ?? '—'}`,
           ...ctx,
         });
       }
@@ -98,7 +100,7 @@ export class DecisionEngine {
 
     if (point.temperatureC !== undefined) {
       const t = point.temperatureC;
-      const r = thresholds.temperatureC;
+      const r = thresholds.temperatureC ?? {};
       let tStatus: VerdictStatus | null = null;
       if (r.goMin !== undefined && t < r.goMin) {
         tStatus = r.cautionMin !== undefined && t >= r.cautionMin ? 'CAUTION' : 'NO_GO';

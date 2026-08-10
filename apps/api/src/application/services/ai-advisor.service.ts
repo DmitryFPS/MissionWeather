@@ -56,30 +56,30 @@ export class AiAdvisorService {
     verdict: Verdict,
     thresholds: FlightThresholds,
   ): Promise<AiAdvice> {
-    const prompt = `Ты метео-советник для БПЛА наблюдения. Ответь JSON: {"summary":"","risks":[],"suggestions":[]}.
+    try {
+      const prompt = `Ты метео-советник для БПЛА наблюдения. Ответь JSON: {"summary":"","risks":[],"suggestions":[]}.
 Вердикт rule-engine: ${verdict.status}. Ветер ${fused.windSpeedMs} м/с. Confidence: ${fused.confidence}.
 Пороги: ${JSON.stringify(thresholds)}. Не меняй вердикт, только объясни и посоветуй на русском.`;
 
-    const res = await fetch(`${baseUrl}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model,
-        messages: [{ role: 'user', content: prompt }],
-        response_format: { type: 'json_object' },
-      }),
-    });
+      const res = await fetch(`${baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: 'user', content: prompt }],
+          response_format: { type: 'json_object' },
+        }),
+      });
 
-    if (!res.ok) return this.offlineAdvice(fused, verdict, model);
+      if (!res.ok) return this.offlineAdvice(fused, verdict, model);
 
-    const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
-    const content = data.choices?.[0]?.message?.content;
-    if (!content) return this.offlineAdvice(fused, verdict, model);
+      const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+      const content = data.choices?.[0]?.message?.content;
+      if (!content) return this.offlineAdvice(fused, verdict, model);
 
-    try {
       const parsed = JSON.parse(content) as { summary?: string; risks?: string[]; suggestions?: string[] };
       return {
         summary: parsed.summary ?? verdict.status,

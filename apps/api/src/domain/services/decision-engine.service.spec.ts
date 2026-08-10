@@ -46,6 +46,18 @@ describe('DecisionEngine', () => {
     expect(v.status).toBe('NO_GO');
   });
 
+  it('handles partial thresholds with gust data', () => {
+    const partial: FlightThresholds = {
+      windSpeedMs: { goMax: 8, cautionMax: 12 },
+      windGustMs: {},
+      visibilityKm: {},
+      precipitationMmH: {},
+      temperatureC: {},
+    };
+    const v = engine.evaluatePoint(basePoint(5, { windGustMs: 9 }), partial);
+    expect(v.status).toBe('GO');
+  });
+
   it('mission verdict uses worst segment', () => {
     const points = [basePoint(5), basePoint(14), basePoint(6)];
     const v = engine.evaluateMission(points, thresholds);

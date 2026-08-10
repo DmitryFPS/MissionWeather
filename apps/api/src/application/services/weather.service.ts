@@ -6,6 +6,7 @@ import { FusionService } from '../../domain/services/fusion.service';
 import { DecisionEngine } from '../../domain/services/decision-engine.service';
 import { FusedWeatherPoint } from '../../domain/entities/weather.entity';
 import { FlightThresholds } from '../../domain/entities/flight-thresholds.entity';
+import { normalizeThresholds } from '../../domain/services/thresholds.util';
 import { Verdict } from '../../domain/entities/verdict.entity';
 import { SourceWeight } from '../../domain/services/fusion.service';
 import { createOpenMeteoProviders } from '../../infrastructure/weather/open-meteo.provider';
@@ -111,6 +112,7 @@ export class WeatherService {
     sourceIds?: string[],
     weights?: SourceWeight[],
   ): Promise<{ snapshots: WeatherSnapshot[]; fused: FusedWeatherPoint | null; verdict: Verdict | null }> {
+    const t = normalizeThresholds(thresholds);
     const { snapshots, fused } = await this.fetchFused(query, sourceIds, weights);
     if (!fused) {
       return {
@@ -123,7 +125,7 @@ export class WeatherService {
         },
       };
     }
-    const verdict = this.decision.evaluatePoint(fused, thresholds);
+    const verdict = this.decision.evaluatePoint(fused, t);
     return { snapshots, fused, verdict };
   }
 

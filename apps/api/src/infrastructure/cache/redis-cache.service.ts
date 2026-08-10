@@ -21,8 +21,18 @@ export class RedisCacheService implements OnModuleInit, OnModuleDestroy {
       return;
     }
     try {
-      this.client = new Redis(url, { maxRetriesPerRequest: 2, lazyConnect: true });
-      await this.client.connect();
+      const client = new Redis(url, {
+        maxRetriesPerRequest: 1,
+        lazyConnect: true,
+        enableOfflineQueue: false,
+        retryStrategy: () => null,
+      });
+      client.on('error', () => undefined);
+      await client.connect();
+      await client.ping();
+      client.removeAllListeners('error');
+      client.on('error', (e) => this.logger.warn(`Redis: ${e.message}`));
+      this.client = client;
       this.logger.log('Redis подключён');
     } catch (err) {
       this.logger.warn(`Redis недоступен (${String(err)}), in-memory кэш`);

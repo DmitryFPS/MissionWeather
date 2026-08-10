@@ -24,6 +24,8 @@ export default function MissionsPage() {
   const [hours, setHours] = useState(3);
   const [evalResult, setEvalResult] = useState<EvalResult | null>(null);
   const [mapPoints, setMapPoints] = useState<{ lat: number; lon: number; label?: string }[]>([]);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     api<Profile[]>('/profiles').then((p) => {
@@ -50,14 +52,22 @@ export default function MissionsPage() {
   }
 
   async function evaluate(id: string) {
-    const result = await api<EvalResult>(`/missions/${id}/evaluate`, { method: 'POST', body: '{}' });
-    setEvalResult(result);
-    if (result.schedule) {
-      setMapPoints(result.schedule.map((s, i) => ({
-        lat: s.lat,
-        lon: s.lon,
-        label: `T+${s.etaOffsetHours.toFixed(1)}ч`,
-      })));
+    setLoading(true);
+    setError('');
+    try {
+      const result = await api<EvalResult>(`/missions/${id}/evaluate`, { method: 'POST', body: '{}' });
+      setEvalResult(result);
+      if (result.schedule) {
+        setMapPoints(result.schedule.map((s, i) => ({
+          lat: s.lat,
+          lon: s.lon,
+          label: `T+${s.etaOffsetHours.toFixed(1)}ч`,
+        })));
+      }
+    } catch {
+      setError('Ошибка оценки миссии — проверьте профиль и API');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -89,9 +99,10 @@ export default function MissionsPage() {
         <div key={m.id} className="card">
           <strong>{m.name}</strong>
           <p>{m.plannedDurationHours} ч · {m.waypoints.length} точек</p>
-          <button className="btn ghost" type="button" onClick={() => evaluate(m.id)}>Оценить миссию (temporal)</button>
+          <button className="btn ghost" type="button" disabled={loading} onClick={() => evaluate(m.id)}>Оценить миссию (temporal)</button>
         </div>
       ))}
+      {error && <p className="verdict-nogo">{error}</p>}
       {evalResult && (
         <div className="card">
           <h3 className={evalResult.verdict.status === 'GO' ? 'verdict-go' : evalResult.verdict.status === 'CAUTION' ? 'verdict-caution' : 'verdict-nogo'}>

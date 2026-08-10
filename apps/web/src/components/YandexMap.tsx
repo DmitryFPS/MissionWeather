@@ -81,7 +81,7 @@ export function YandexMap({ center, points = [], height = 320, onClick }: Yandex
     document.head.appendChild(script);
 
     return () => mapRef.current?.destroy();
-  }, [center.lat, center.lon, points, onClick]);
+  }, [center.lat, center.lon, JSON.stringify(points)]);
 
   if (error) {
     return (
