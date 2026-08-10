@@ -12,3 +12,5 @@ Thumbs.db
 data/postgres/
 data/redis/
 .turbo/
+FIELD-URL.txt
+LAN-URL.txt

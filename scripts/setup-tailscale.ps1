@@ -6,14 +6,23 @@ Write-Host '=== MissionWeather: Tailscale для поля ===' -ForegroundColor 
 
 $tsExe = "$env:ProgramFiles\Tailscale\tailscale.exe"
 if (-not (Test-Path $tsExe)) {
-  Write-Host 'Installing Tailscale via winget...' -ForegroundColor Yellow
-  winget install Tailscale.Tailscale --accept-package-agreements --accept-source-agreements
+  Write-Host 'Downloading Tailscale...' -ForegroundColor Yellow
+  $msi = "$env:TEMP\Tailscale-setup.msi"
+  curl.exe -L -o $msi "https://dl.tailscale.com/stable/tailscale-setup-latest-amd64.msi"
+  if ((Get-Item $msi).Length -gt 1000000) {
+    Start-Process msiexec.exe -ArgumentList "/i `"$msi`" /quiet /norestart" -Wait
+    Start-Sleep -Seconds 5
+  }
 }
 
 if (-not (Test-Path $tsExe)) {
-  Write-Host 'Install Tailscale manually: https://tailscale.com/download/windows' -ForegroundColor Red
+  Write-Host 'Install failed. Download: https://tailscale.com/download/windows' -ForegroundColor Red
   exit 1
 }
+
+Write-Host 'Starting Tailscale login (browser)...' -ForegroundColor Yellow
+Start-Process "https://login.tailscale.com/admin/machines"
+& $tsExe up 2>&1 | ForEach-Object { Write-Host $_ }
 
 Write-Host 'Opening firewall ports 3000/3001...' -ForegroundColor Yellow
 & "$PSScriptRoot\open-firewall.ps1"
