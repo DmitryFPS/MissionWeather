@@ -1,0 +1,14 @@
+{
+  "name": "@mission-weather/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "sync": "npx cap sync",
+    "android": "npx cap open android"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/cli": "^7.0.0",
+    "@capacitor/core": "^7.0.0"
+  }
+}
