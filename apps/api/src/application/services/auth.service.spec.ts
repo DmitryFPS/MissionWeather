@@ -4,12 +4,14 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { StoreService } from '../../infrastructure/store/store.service';
 import { DatabaseService } from '../../infrastructure/database/database.service';
+import { AuditService } from '../../infrastructure/audit/audit.service';
 
 describe('AuthService', () => {
   let auth: AuthService;
   let store: StoreService;
 
   const mockDb = { enabled: false, query: jest.fn(), onModuleInit: jest.fn(), onModuleDestroy: jest.fn() };
+  const mockAudit = { log: jest.fn().mockResolvedValue(undefined), list: jest.fn() };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -20,6 +22,7 @@ describe('AuthService', () => {
       providers: [
         AuthService,
         StoreService,
+        AuditService,
         { provide: DatabaseService, useValue: mockDb },
       ],
     }).compile();
