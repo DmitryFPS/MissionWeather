@@ -10,7 +10,7 @@ export class AuthService {
   ) {}
 
   async login(email: string, password: string) {
-    const user = this.store.findUserByEmail(email);
+    const user = await this.store.findUserByEmail(email);
     if (!user || !(await this.store.validatePassword(user, password))) {
       throw new UnauthorizedException('Неверный email или пароль');
     }

@@ -3,10 +3,13 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { StoreService } from '../../infrastructure/store/store.service';
+import { DatabaseService } from '../../infrastructure/database/database.service';
 
 describe('AuthService', () => {
   let auth: AuthService;
   let store: StoreService;
+
+  const mockDb = { enabled: false, query: jest.fn(), onModuleInit: jest.fn(), onModuleDestroy: jest.fn() };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -14,7 +17,11 @@ describe('AuthService', () => {
         ConfigModule.forRoot({ isGlobal: true }),
         JwtModule.register({ secret: 'test-secret-min-32-characters-long' }),
       ],
-      providers: [AuthService, StoreService],
+      providers: [
+        AuthService,
+        StoreService,
+        { provide: DatabaseService, useValue: mockDb },
+      ],
     }).compile();
     auth = module.get(AuthService);
     store = module.get(StoreService);
@@ -31,9 +38,14 @@ describe('AuthService', () => {
 describe('StoreService', () => {
   let store: StoreService;
 
+  const mockDb = { enabled: false, query: jest.fn(), onModuleInit: jest.fn(), onModuleDestroy: jest.fn() };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [StoreService],
+      providers: [
+        StoreService,
+        { provide: DatabaseService, useValue: mockDb },
+      ],
     }).compile();
     store = module.get(StoreService);
     await store.onModuleInit();

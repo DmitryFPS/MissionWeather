@@ -28,8 +28,8 @@ export class MissionsController {
 
   @Post(':id/evaluate')
   async evaluate(@CurrentUser() user: AuthUser, @Param('id') id: string) {
-    const mission = this.store.getMission(id, user.id, user.role);
-    const profile = this.store.getProfile(mission.profileId, user.id, user.role);
+    const mission = await this.store.getMission(id, user.id, user.role);
+    const profile = await this.store.getProfile(mission.profileId, user.id, user.role);
     const points = await Promise.all(
       mission.waypoints.map((wp) =>
         this.weather.evaluate(
