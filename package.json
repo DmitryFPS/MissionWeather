@@ -1,0 +1,21 @@
+{
+  "name": "mission-weather",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Погода и решение о полёте для БПЛА наблюдения",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev -w @mission-weather/api",
+    "dev:web": "npm run dev -w @mission-weather/web",
+    "build": "npm run build -w @mission-weather/api && npm run build -w @mission-weather/web",
+    "test": "npm run test -w @mission-weather/api",
+    "test:all": "npm run test && npm run lint",
+    "lint": "npm run lint -w @mission-weather/api -w @mission-weather/web --if-present"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

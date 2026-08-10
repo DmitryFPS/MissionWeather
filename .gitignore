@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.next/
+coverage/
+.env
+.env.local
+*.log
+.DS_Store
+Thumbs.db
+.idea/workspace.xml
+.idea/shelf/
+data/postgres/
+data/redis/
+.turbo/
