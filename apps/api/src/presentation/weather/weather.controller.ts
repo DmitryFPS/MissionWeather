@@ -1,29 +1,34 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { WeatherService } from '../../application/services/weather.service';
 import { WeatherEvaluateDto, WeatherQueryDto } from './weather.dto';
 import { FlightThresholds } from '../../domain/entities/flight-thresholds.entity';
+import { Public } from '../auth/auth.decorators';
 
 @ApiTags('weather')
 @Controller('weather')
 export class WeatherController {
   constructor(private readonly weather: WeatherService) {}
 
+  @Public()
   @Get('providers')
   providers() {
     return this.weather.listProviders();
   }
 
+  @Public()
   @Get('health')
   health() {
     return this.weather.providerHealth();
   }
 
+  @Public()
   @Get('fused')
   async fused(@Query() query: WeatherQueryDto) {
     return this.weather.fetchFused(query, query.sourceIds);
   }
 
+  @Public()
   @Post('evaluate')
   async evaluate(@Body() body: WeatherEvaluateDto) {
     const thresholds: FlightThresholds = {
