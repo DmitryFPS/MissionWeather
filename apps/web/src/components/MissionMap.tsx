@@ -35,11 +35,15 @@ export function MissionMap({ center, points = [], height = 320 }: MissionMapProp
 
       if (cancelled || !ref.current) return;
       mapRef.current?.remove();
-      const map = L.map(ref.current).setView([center.lat, center.lon], 10);
+      const map = L.map(ref.current, { attributionControl: false }).setView([center.lat, center.lon], 10);
       mapRef.current = map;
 
+      L.control
+        .attribution({ prefix: false })
+        .addAttribution('<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap</a>')
+        .addTo(map);
+
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap',
         maxZoom: 19,
       }).addTo(map);
 
