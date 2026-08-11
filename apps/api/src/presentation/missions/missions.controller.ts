@@ -7,6 +7,8 @@ import { MissionTimelineService } from '../../domain/services/mission-timeline.s
 import { normalizeThresholds } from '../../domain/services/thresholds.util';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { AuthUser } from '../auth/auth.decorators';
+import { RunHistoryService } from '../../infrastructure/store/run-history.service';
+import { AuditService } from '../../infrastructure/audit/audit.service';
 
 @ApiTags('missions')
 @ApiBearerAuth()
@@ -17,6 +19,8 @@ export class MissionsController {
     private readonly store: StoreService,
     private readonly weather: WeatherService,
     private readonly timeline: MissionTimelineService,
+    private readonly history: RunHistoryService,
+    private readonly audit: AuditService,
   ) {}
 
   @Get()
@@ -25,7 +29,7 @@ export class MissionsController {
   }
 
   @Post()
-  create(
+  async create(
     @CurrentUser() user: AuthUser,
     @Body()
     body: {
@@ -35,11 +39,13 @@ export class MissionsController {
       plannedDurationHours: number;
     },
   ) {
-    return this.store.createMission(user.id, body);
+    const m = await this.store.createMission(user.id, body);
+    await this.audit.log(user.id, 'mission.create', 'mission', m.id, { name: m.name });
+    return m;
   }
 
   @Put(':id')
-  update(
+  async update(
     @CurrentUser() user: AuthUser,
     @Param('id') id: string,
     @Body()
@@ -50,12 +56,15 @@ export class MissionsController {
       plannedDurationHours: number;
     }>,
   ) {
-    return this.store.updateMission(id, user.id, user.role, body);
+    const m = await this.store.updateMission(id, user.id, user.role, body);
+    await this.audit.log(user.id, 'mission.update', 'mission', id);
+    return m;
   }
 
   @Delete(':id')
   async remove(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     await this.store.deleteMission(id, user.id, user.role);
+    await this.audit.log(user.id, 'mission.delete', 'mission', id);
     return { ok: true };
   }
 
@@ -85,12 +94,13 @@ export class MissionsController {
     );
 
     if (points.length === 0) {
-      return {
+      const empty = {
         mission,
         schedule,
         points,
         verdict: { status: 'NO_GO' as const, reasons: [], confidence: 'low' as const },
       };
+      return empty;
     }
     const order = { GO: 0, CAUTION: 1, NO_GO: 2 };
     const worst = points.reduce((a, b) =>
@@ -102,7 +112,7 @@ export class MissionsController {
         ? { status: 'NO_GO' as const, parameter: 'duration', value: durationOk, limit: mission.plannedDurationHours }
         : null;
 
-    return {
+    const payload = {
       mission,
       schedule,
       points,
@@ -110,5 +120,15 @@ export class MissionsController {
       durationHours: durationOk,
       durationExceeded: Boolean(durationVerdict),
     };
+
+    await this.history.save(user.id, 'mission_evaluate', { missionId: id, startTime }, payload, {
+      name: mission.name,
+      verdict: worst.verdict?.status,
+    });
+    await this.audit.log(user.id, 'mission.evaluate', 'mission', id, {
+      verdict: worst.verdict?.status,
+    });
+
+    return payload;
   }
 }

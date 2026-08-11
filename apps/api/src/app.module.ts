@@ -15,6 +15,8 @@ import { DatabaseModule } from './infrastructure/database/database.module';
 import { AuditModule } from './infrastructure/audit/audit.module';
 import { AuditModulePresentation } from './presentation/audit/audit.module';
 import { AircraftModule } from './presentation/aircraft/aircraft.module';
+import { ScenariosModule } from './presentation/scenarios/scenarios.module';
+import { RunsModule } from './presentation/runs/runs.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
@@ -32,6 +34,8 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
     AiModule,
     AppConfigModule,
     AircraftModule,
+    ScenariosModule,
+    RunsModule,
     AuditModulePresentation,
   ],
   providers: [

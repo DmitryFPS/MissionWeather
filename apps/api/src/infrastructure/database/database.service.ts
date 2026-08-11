@@ -72,12 +72,13 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     `);
     const applied = await this.pool.query<{ id: string }>('SELECT id FROM schema_migrations');
     const done = new Set(applied.rows.map((r) => r.id));
-    const migrationId = '001_init';
-    if (done.has(migrationId)) return;
-
-    const sqlPath = join(__dirname, 'migrations', `${migrationId}.sql`);
-    const sql = readFileSync(sqlPath, 'utf8');
-    await this.pool.query(sql);
-    await this.pool.query('INSERT INTO schema_migrations (id) VALUES ($1)', [migrationId]);
+    for (const migrationId of ['001_init', '002_run_history']) {
+      if (done.has(migrationId)) continue;
+      const sqlPath = join(__dirname, 'migrations', `${migrationId}.sql`);
+      const sql = readFileSync(sqlPath, 'utf8');
+      await this.pool.query(sql);
+      await this.pool.query('INSERT INTO schema_migrations (id) VALUES ($1)', [migrationId]);
+      this.logger.log(`Migration applied: ${migrationId}`);
+    }
   }
 }
