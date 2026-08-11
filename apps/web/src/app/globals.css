@@ -182,3 +182,122 @@ label {
     width: 100%;
   }
 }
+
+.muted {
+  opacity: 0.75;
+  font-size: 0.9rem;
+}
+
+.row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.wp-row {
+  display: grid;
+  grid-template-columns: 3rem 1fr 1fr auto;
+  gap: 0.35rem;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.wp-row input {
+  margin-bottom: 0;
+}
+
+.file-btn {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+
+.time-dock .hour-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.hour-chip {
+  min-width: 4rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid #475569;
+  background: #0f172a;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.hour-chip.active {
+  outline: 2px solid #38bdf8;
+}
+
+.hour-chip.problem {
+  border-color: #f87171;
+}
+
+.ttx-table-wrap {
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.ttx-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.ttx-table th,
+.ttx-table td {
+  border: 1px solid #334155;
+  padding: 0.35rem 0.5rem;
+  text-align: left;
+}
+
+.mission-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid #334155;
+}
+
+.briefing-print {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.briefing-footer {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #334155;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+@media print {
+  .header,
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+    color: #000;
+  }
+  .briefing-print {
+    color: #000;
+  }
+}

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { StoreService } from '../../infrastructure/store/store.service';
@@ -31,11 +31,32 @@ export class MissionsController {
     body: {
       name: string;
       profileId: string;
-      waypoints: { lat: number; lon: number }[];
+      waypoints: { lat: number; lon: number; altitudeAglM?: number }[];
       plannedDurationHours: number;
     },
   ) {
     return this.store.createMission(user.id, body);
+  }
+
+  @Put(':id')
+  update(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Body()
+    body: Partial<{
+      name: string;
+      profileId: string;
+      waypoints: { lat: number; lon: number; altitudeAglM?: number }[];
+      plannedDurationHours: number;
+    }>,
+  ) {
+    return this.store.updateMission(id, user.id, user.role, body);
+  }
+
+  @Delete(':id')
+  async remove(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    await this.store.deleteMission(id, user.id, user.role);
+    return { ok: true };
   }
 
   @Post(':id/evaluate')
