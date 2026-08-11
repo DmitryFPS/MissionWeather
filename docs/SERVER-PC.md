@@ -1,55 +1,49 @@
-# Запуск MissionWeather на этом ПК (сервер)
+# Сервер MissionWeather
 
-## Быстрый старт
+Один порт **3000** — как простой `http://IP:3000`, но внутри:
 
-```powershell
-cd C:\Users\adm\Projects\MissionWeather
-copy .env.example .env
-# В .env задайте ROUTERAI_API_KEY (у вас уже есть)
-docker compose up -d --build
+```
+Клиент → nginx:3000 → Web (UI) или /api → NestJS → Postgres + Redis
 ```
 
-## Адреса
+## Запуск
 
-| Сервис | URL |
-|--------|-----|
-| **Web (UI)** | http://localhost:3000 |
-| **API** | http://localhost:3001 |
-| **Swagger** | http://localhost:3001/docs |
-| **Admin** | admin@missionweather.local / admin123 |
+```powershell
+.\scripts\start-server.ps1
+.\scripts\open-firewall.ps1
+.\scripts\server-status.ps1
+```
 
-## Доступ с других устройств в LAN (Windows / планшет)
+## Сравнение с «просто node :3000»
 
-1. Узнайте IP этого ПК: `ipconfig` → IPv4 (например `192.168.1.50`)
-2. На другом устройстве в той же Wi‑Fi сети:
-   - Web: **http://192.168.1.50:3000**
-   - API подставится автоматически (тот же IP, порт 3001)
-3. Разрешите порты **3000** и **3001** в брандмауэре Windows (если не открываются)
+| | Простой :3000 | MissionWeather |
+|--|---------------|----------------|
+| UI + API | один процесс | раздельно, nginx |
+| База данных | часто нет | Postgres + Redis |
+| Падение процесса | всё лежит | restart + healthcheck |
+| Погода | 1 источник | 12 агрегаторов |
+| GO/NO-GO | нет | DecisionEngine |
+| ИИ-совет | нет | RouterAI |
 
-## Android вне дома (опционально)
+## LAN (телефон в Wi‑Fi)
 
-**Cloudflare Tunnel** — «проброс» вашего localhost в интернет через Cloudflare без белого IP.
-**Tailscale** — частная VPN-сеть: телефон и mini-ПК как будто в одной LAN.
+`http://<IP-сервера>:3000` — один URL, API через `/api`.
 
-Для работы **только дома** это не нужно — достаточно IP в LAN выше.
+## Публичный IP (Azure / VPS, как 20.23.5.75)
 
-## Погода и карты
+См. [PUBLIC-IP.md](PUBLIC-IP.md).
 
-- **Погода:** 12 агрегаторов (Open-Meteo, MET Norway, AviationWeather и др.) — ключи не обязательны для бесплатных.
-- **Карты:** OpenStreetMap (Leaflet) — без отдельного ключа.
-- **ИИ:** RouterAI через `ROUTERAI_API_KEY` в `.env`.
+## Watchdog
+
+```powershell
+# Планировщик задач Windows — каждые 5 мин:
+powershell -File C:\Users\adm\Projects\MissionWeather\scripts\watchdog.ps1
+```
 
 ## Команды
 
 ```powershell
-docker compose ps          # статус
-docker compose logs -f api # логи API
-docker compose down        # остановить
-docker compose up -d --build  # пересобрать
-```
-
-## Бэкап Postgres
-
-```powershell
-docker compose exec postgres pg_dump -U mission missionweather > backup.sql
+docker compose -f docker-compose.yml -f docker-compose.prod.yml ps
+docker compose logs -f gateway
+docker compose down
 ```

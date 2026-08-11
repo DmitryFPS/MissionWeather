@@ -11,6 +11,12 @@ Thumbs.db
 .idea/shelf/
 data/postgres/
 data/redis/
+data/tunnel.log
+data/tunnel.err.log
+data/tunnel.pid
 .turbo/
+apps/web/.env.local
 FIELD-URL.txt
 LAN-URL.txt
+tmp-*.json
+scripts/bin/

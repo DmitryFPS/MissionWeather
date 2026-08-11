@@ -10,6 +10,8 @@
   "scripts": {
     "dev:api": "npm run dev -w @mission-weather/api",
     "dev:web": "npm run dev -w @mission-weather/web",
+    "start:local": "powershell -File scripts/start-local.ps1",
+    "start:server": "powershell -File scripts/start-server.ps1",
     "build": "npm run build -w @mission-weather/api && npm run build -w @mission-weather/web",
     "test": "npm run test -w @mission-weather/api",
     "test:all": "npm run test && npm run lint",

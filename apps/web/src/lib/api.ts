@@ -1,11 +1,7 @@
-const DEFAULT_PORT = '3001';
-
 function resolveApiBase(): string {
   if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
-  if (typeof window !== 'undefined') {
-    return `${window.location.protocol}//${window.location.hostname}:${DEFAULT_PORT}`;
-  }
-  return `http://localhost:${DEFAULT_PORT}`;
+  if (typeof window !== 'undefined') return '/api';
+  return process.env.API_INTERNAL_URL ?? 'http://localhost:3001';
 }
 
 export function getToken(): string | null {

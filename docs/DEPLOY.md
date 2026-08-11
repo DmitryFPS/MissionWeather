@@ -1,51 +1,35 @@
-# Деплой MissionWeather на мини-ПК
+# Деплой MissionWeather
 
-## 1. Подготовка
+## 1. Сервер (API)
 
 ```bash
 cp .env.example .env
-# Заполните JWT_SECRET, ROUTERAI_API_KEY, ключи погоды
-docker compose up -d
+docker compose up -d --build
 ```
 
-## 2. Production compose
+Сервисы: `postgres`, `redis`, `api` (порт 3001).
+
+## 2. Рабочий ПК (Web UI)
+
+```powershell
+npm install
+# SERVER_API_URL=http://<ip-сервера>:3001  в .env
+.\scripts\start-local.ps1
+```
+
+## 3. Production compose (опционально)
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 ```
 
-## 3. Cloudflare Tunnel (Android извне)
-
-1. Установите `cloudflared` на мини-ПК
-2. `cloudflared tunnel create missionweather`
-3. Направьте `weather.yourdomain.com` → `http://localhost:3000`
-4. Направьте `api.yourdomain.com` → `http://localhost:3001`
-5. В `.env`: `NEXT_PUBLIC_API_URL=https://api.yourdomain.com`
-
-## 4. Tailscale (альтернатива)
-
-1. Установите Tailscale на mini-PC и Android
-2. Используйте `http://100.x.x.x:3000` без публикации в интернет
-
-## 5. Резервное копирование Postgres
+## 4. Резервное копирование Postgres
 
 ```bash
 docker compose exec postgres pg_dump -U mission missionweather > backup.sql
 ```
 
-## 6. Capacitor APK
-
-```bash
-cd apps/mobile
-npm install
-npx cap sync android
-npx cap open android
-```
-
-Соберите signed APK в Android Studio.
-
-## 7. Healthcheck
+## 5. Healthcheck
 
 - API: `GET /health`
-- Провайдеры: `GET /weather/providers/health` (если включено)
-- Redis/Postgres: через `docker compose ps`
+- Redis/Postgres: `docker compose ps`

@@ -7,6 +7,7 @@ import { AuthModule } from './presentation/auth/auth.module';
 import { ProfilesModule } from './presentation/profiles/profiles.module';
 import { MissionsModule } from './presentation/missions/missions.module';
 import { AiModule } from './presentation/ai/ai.module';
+import { ConfigModule as AppConfigModule } from './presentation/config/config.module';
 import { CacheModule } from './infrastructure/cache/cache.module';
 import { JwtGlobalGuard } from './infrastructure/auth/jwt-global.guard';
 import { DatabaseModule } from './infrastructure/database/database.module';
@@ -28,6 +29,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
     ProfilesModule,
     MissionsModule,
     AiModule,
+    AppConfigModule,
     AuditModulePresentation,
   ],
   providers: [

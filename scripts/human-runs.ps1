@@ -1,6 +1,6 @@
 # 12 human-like integration runs for MissionWeather
 $ErrorActionPreference = 'Stop'
-$base = 'http://localhost:3001'
+$base = 'http://localhost:3000/api'
 $results = @()
 
 function Test-Run($num, $name, [scriptblock]$fn) {

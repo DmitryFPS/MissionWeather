@@ -1,4 +1,4 @@
-# Открыть порты MissionWeather в брандмауэре Windows
+# Один порт 3000 — web + API через nginx
 $ErrorActionPreference = 'Stop'
 
 function Add-FwRule($Name, $Port) {
@@ -11,6 +11,5 @@ function Add-FwRule($Name, $Port) {
   Write-Host "Added: $Name (TCP $Port)" -ForegroundColor Green
 }
 
-Add-FwRule 'MissionWeather Web' 3000
-Add-FwRule 'MissionWeather API' 3001
-Write-Host 'Firewall ready for LAN and Tailscale access.' -ForegroundColor Cyan
+Add-FwRule 'MissionWeather Gateway' 3000
+Write-Host 'Port 3000 open (UI + API + Swagger).' -ForegroundColor Cyan

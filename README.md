@@ -1,51 +1,34 @@
 # MissionWeather
 
-Production-ready сервис **GO / CAUTION / NO-GO** для БПЛА наблюдения (1–10 ч).
+**GO / CAUTION / NO-GO** для БПЛА наблюдения (1–10 ч).
 
-## Запуск сервера на этом ПК (Docker)
+Production-сервер: **один адрес** `http://IP:3000` — UI, API и Swagger (как `http://20.23.5.75:3000`, но с Docker, nginx, healthcheck и автоперезапуском).
+
+## Запуск
 
 ```powershell
 .\scripts\start-server.ps1
+.\scripts\open-firewall.ps1   # один раз
 ```
 
-Или вручную:
-
-```powershell
-docker compose up -d --build
-```
-
-| URL | Описание |
-|-----|----------|
+| URL | Что |
+|-----|-----|
 | http://localhost:3000 | Web UI |
-| http://localhost:3001 | API |
-| http://localhost:3001/docs | Swagger |
+| http://localhost:3000/api/health | API |
+| http://localhost:3000/docs | Swagger |
+| http://192.168.x.x:3000 | LAN / телефон в Wi‑Fi |
+| http://\<public-IP\>:3000 | Из интернета (VM + firewall) |
 
 **Admin:** `admin@missionweather.local` / `admin123`
 
-Подробнее: [docs/SERVER-PC.md](docs/SERVER-PC.md)
+## Надёжность
 
-## Стек
+- **nginx** — один вход, прокси на API и Web
+- **healthcheck** — Docker перезапускает упавшие контейнеры
+- **watchdog** — `.\scripts\watchdog.ps1` (можно в Планировщик задач каждые 5 мин)
+- Postgres + Redis + 12 агрегаторов погоды + RouterAI
 
-- NestJS + PostgreSQL + Redis + 12 weather aggregators
-- Next.js PWA + OpenStreetMap (Leaflet)
-- RouterAI advisor
-- Docker Compose
-
-## LAN-доступ (дома)
-
-С телефона в той же Wi‑Fi: `http://<IP-этого-ПК>:3000`
-
-## Телефон в поле (сервер далеко)
-
-**Tailscale VPN** — телефон и сервер в одной частной сети через интернет.
-
-```powershell
-.\scripts\setup-tailscale.ps1
-```
-
-На Android: Tailscale → тот же аккаунт → Chrome → `http://100.x.y.z:3000` → «На главный экран».
-
-Подробно: [docs/FIELD-ANDROID.md](docs/FIELD-ANDROID.md)
+Подробнее: [docs/SERVER-PC.md](docs/SERVER-PC.md) · [docs/PUBLIC-IP.md](docs/PUBLIC-IP.md)
 
 ## Тесты
 

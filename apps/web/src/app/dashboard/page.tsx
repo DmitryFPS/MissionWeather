@@ -6,11 +6,11 @@ import { api, apiBaseUrl } from '@/lib/api';
 export default function DashboardPage() {
   const [health, setHealth] = useState('…');
   const [providers, setProviders] = useState(0);
-  const [fieldUrl, setFieldUrl] = useState('');
+  const [lanUrl, setLanUrl] = useState('');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setFieldUrl(`${window.location.protocol}//${window.location.hostname}:3000`);
+      setLanUrl(`${window.location.protocol}//${window.location.hostname}:3000`);
     }
     fetch(`${apiBaseUrl()}/health`)
       .then((r) => r.json())
@@ -27,6 +27,7 @@ export default function DashboardPage() {
           <h3>API</h3>
           <p>Статус: {health}</p>
           <p>Агрегаторов: {providers}</p>
+          <p style={{ opacity: 0.8, fontSize: '0.9rem' }}>API: {apiBaseUrl()}</p>
         </div>
         <div className="card">
           <h3>Быстрые действия</h3>
@@ -35,18 +36,13 @@ export default function DashboardPage() {
           <p>3. Получите совет ИИ (не меняет GO/NO-GO)</p>
         </div>
       </div>
-      <div className="card">
-        <h3>Телефон в поле (Tailscale)</h3>
-        <p>На Android: Tailscale + Chrome → добавить на главный экран.</p>
-        {fieldUrl && (
-          <p>
-            Закладка для поля: <strong>{fieldUrl}</strong>
-          </p>
-        )}
-        <p style={{ opacity: 0.8, fontSize: '0.9rem' }}>
-          После Tailscale используйте IP вида 100.x.y.z вместо 192.168… — см. docs/FIELD-ANDROID.md
-        </p>
-      </div>
+      {lanUrl && (
+        <div className="card">
+          <h3>Доступ</h3>
+          <p>Один адрес — UI и API: <strong>{lanUrl}</strong></p>
+          <p style={{ opacity: 0.8, fontSize: '0.9rem' }}>API: {apiBaseUrl()}</p>
+        </div>
+      )}
     </div>
   );
 }
