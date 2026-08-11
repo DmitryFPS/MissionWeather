@@ -1,0 +1,12 @@
+# Optional TLS termination (mount certs to /etc/nginx/certs/)
+# Usage: docker compose -f docker-compose.yml -f docker-compose.ssl.yml up -d
+
+services:
+  gateway:
+    ports:
+      - "3000:80"
+      - "3443:443"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/nginx-ssl.conf:/etc/nginx/nginx-ssl.conf:ro
+      - ./data/certs:/etc/nginx/certs:ro
