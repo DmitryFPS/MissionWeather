@@ -32,4 +32,7 @@ export interface RouteMissionContext {
   totalDistanceKm: number;
   flightDurationHours: number;
   cruiseSpeedKmh: number;
+  trackBearingDeg?: number;
+  headwindMs?: number;
+  crosswindMs?: number;
 }

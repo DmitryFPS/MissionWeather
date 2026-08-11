@@ -38,6 +38,8 @@ export interface Orlan10Specs {
   capeWarn: number;
   capeForbidden: number;
   liftedIndexWarn: number;
+  headwindMaxMs: number;
+  crosswindMaxMs: number;
 }
 
 export interface TtxParamDef {
@@ -86,6 +88,8 @@ export const ORLAN10_SPECS: Orlan10Specs = {
   capeWarn: 1000,
   capeForbidden: 2500,
   liftedIndexWarn: 0,
+  headwindMaxMs: 8,
+  crosswindMaxMs: 6,
 };
 
 export const ORLAN10_TTX_PARAMS: TtxParamDef[] = [
@@ -94,6 +98,8 @@ export const ORLAN10_TTX_PARAMS: TtxParamDef[] = [
   { id: 'wind_surface', group: 'Ветер', label: 'Ветер у земли', openMeteo: 'wind_speed_10m', limit: '≤10 м/с (старт/посадка)' },
   { id: 'wind_gust', group: 'Ветер', label: 'Порывы ветра', openMeteo: 'wind_gusts_10m', limit: '≤12 м/с' },
   { id: 'wind_alt', group: 'Ветер', label: 'Ветер на высоте полёта', openMeteo: 'wind_speed_*hPa', limit: '≤15 м/с' },
+  { id: 'headwind', group: 'Ветер', label: 'Встречный ветер', openMeteo: 'расчёт по курсу', limit: '≤8 м/с' },
+  { id: 'crosswind', group: 'Ветер', label: 'Боковой ветер', openMeteo: 'расчёт по курсу', limit: '≤6 м/с' },
   { id: 'temp_surface', group: 'Температура', label: 'Температура у земли', openMeteo: 'temperature_2m', limit: '−30…+40 °C' },
   { id: 'temp_apparent', group: 'Температура', label: 'Ощущаемая температура', openMeteo: 'apparent_temperature', limit: '−30…+40 °C' },
   { id: 'temp_alt', group: 'Температура', label: 'Температура на высоте', openMeteo: 'temperature_*hPa', limit: 'контроль обледенения' },

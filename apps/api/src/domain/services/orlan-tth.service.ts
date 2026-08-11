@@ -67,6 +67,24 @@ export class OrlanTthService {
     else if (wa !== undefined && wa > s.windLaunchMaxMs) windAlt = 'CAUTION';
     push('wind_alt', 'Ветер', 'Ветер на высоте полёта', windAlt, fmtNum(wa, 'м/с'), '≤15 м/с');
 
+    const hw = mission.headwindMs;
+    let hwSt: TthStatus = 'INFO';
+    if (hw !== undefined) {
+      if (hw > s.headwindMaxMs) hwSt = 'NO_GO';
+      else if (hw > s.headwindMaxMs * 0.75) hwSt = 'CAUTION';
+      else hwSt = 'GO';
+    }
+    push('headwind', 'Ветер', 'Встречный ветер', hwSt, fmtNum(hw, 'м/с'), '≤8 м/с');
+
+    const cw = mission.crosswindMs !== undefined ? Math.abs(mission.crosswindMs) : undefined;
+    let cwSt: TthStatus = 'INFO';
+    if (cw !== undefined) {
+      if (cw > s.crosswindMaxMs) cwSt = 'NO_GO';
+      else if (cw > s.crosswindMaxMs * 0.75) cwSt = 'CAUTION';
+      else cwSt = 'GO';
+    }
+    push('crosswind', 'Ветер', 'Боковой ветер', cwSt, fmtNum(cw, 'м/с'), '≤6 м/с');
+
     const ts = surface.temperatureC;
     let tempSt: TthStatus = 'GO';
     if (ts !== undefined && (ts < s.tempSurfaceMinC || ts > s.tempSurfaceMaxC)) tempSt = 'NO_GO';
@@ -206,7 +224,7 @@ export class OrlanTthService {
       if (c.status === 'NO_GO' || c.status === 'CAUTION') problemIds.push(c.id);
     }
 
-    // Ensure all 28 params present (match ORLAN10_TTX_PARAMS order)
+    // Ensure all TTX params present (match preset order)
     const byId = new Map(checks.map((c) => [c.id, c]));
     const ordered = ORLAN10_TTX_PARAMS.map((p) => byId.get(p.id)!);
 

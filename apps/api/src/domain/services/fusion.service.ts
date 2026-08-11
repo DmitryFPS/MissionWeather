@@ -57,6 +57,7 @@ export class FusionService {
       timestamp,
       windSpeedMs: avg,
       windGustMs: avgField((s) => s.windGustMs),
+      windDirectionDeg: avgCircularField(snapshots, (s) => s.windDirectionDeg, weightMap),
       visibilityKm: avgField((s) => s.visibilityKm),
       precipitationMmH: avgField((s) => s.precipitationMmH),
       temperatureC: avgField((s) => s.temperatureC),
@@ -66,4 +67,25 @@ export class FusionService {
       confidence,
     };
   }
+}
+
+function avgCircularField(
+  snapshots: WeatherSnapshot[],
+  pick: (s: WeatherSnapshot) => number | undefined,
+  weightMap: Map<string, number>,
+): number | undefined {
+  let sin = 0;
+  let cos = 0;
+  let tw = 0;
+  for (const s of snapshots) {
+    const v = pick(s);
+    if (v === undefined) continue;
+    const w = weightMap.get(s.sourceId) ?? 1;
+    const r = (v * Math.PI) / 180;
+    sin += Math.sin(r) * w;
+    cos += Math.cos(r) * w;
+    tw += w;
+  }
+  if (tw === 0) return undefined;
+  return ((Math.atan2(sin, cos) * 180) / Math.PI + 360) % 360;
 }

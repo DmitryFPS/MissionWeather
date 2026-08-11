@@ -14,7 +14,7 @@ function Test-Run($num, $name, [scriptblock]$fn) {
   }
 }
 
-Test-Run 1 'Health + 12 providers (desktop API)' {
+Test-Run 1 'Health check (public)' {
   $ok = $false
   for ($i = 0; $i -lt 5; $i++) {
     try {
@@ -23,16 +23,16 @@ Test-Run 1 'Health + 12 providers (desktop API)' {
     } catch { Start-Sleep -Seconds 1 }
   }
   if (-not $ok) { throw 'health not ok after retries' }
-  $p = Invoke-RestMethod "$base/weather/providers"
-  if ($p.Count -ne 12) { throw "expected 12 providers, got $($p.Count)" }
 }
 
-Test-Run 2 'Login admin + JWT me' {
+Test-Run 2 'Login admin + JWT me + 12 providers' {
   $login = Invoke-RestMethod "$base/auth/login" -Method POST -ContentType 'application/json' -Body '{"email":"admin@missionweather.local","password":"admin123"}'
   if (-not $login.accessToken) { throw 'no token' }
   $script:token = $login.accessToken
   $me = Invoke-RestMethod "$base/auth/me" -Headers @{ Authorization = "Bearer $script:token" }
   if ($me.role -ne 'admin') { throw 'not admin' }
+  $p = Invoke-RestMethod "$base/weather/providers" -Headers @{ Authorization = "Bearer $script:token" }
+  if ($p.Count -ne 12) { throw "expected 12 providers, got $($p.Count)" }
 }
 
 Test-Run 3 'Create aircraft profile (manual thresholds)' {
@@ -49,9 +49,9 @@ Test-Run 3 'Create aircraft profile (manual thresholds)' {
   $script:profileId = $profile.id
 }
 
-Test-Run 4 'Weather evaluate Moscow (human point check)' {
+Test-Run 4 'Weather evaluate Moscow (auth required)' {
   $body = '{"lat":55.7558,"lon":37.6173,"thresholds":{"windSpeedMs":{"goMax":8,"cautionMax":12},"maxSourceSpreadMs":5}}'
-  $eval = Invoke-RestMethod "$base/weather/evaluate" -Method POST -ContentType 'application/json' -Body $body
+  $eval = Invoke-RestMethod "$base/weather/evaluate" -Method POST -ContentType 'application/json' -Headers @{ Authorization = "Bearer $script:token" } -Body $body
   if (-not $eval.verdict.status) { throw 'no verdict' }
   if (-not $eval.fused) { throw 'no fused data' }
   if ($eval.snapshots.Count -lt 1) { throw 'no snapshots' }
@@ -95,8 +95,8 @@ Test-Run 8 'Unauthorized access blocked' {
   }
 }
 
-Test-Run 9 'Provider health circuit check' {
-  $h = Invoke-RestMethod "$base/weather/health"
+Test-Run 9 'Provider health circuit check (auth)' {
+  $h = Invoke-RestMethod "$base/weather/health" -Headers @{ Authorization = "Bearer $script:token" }
   if ($h.Count -ne 12) { throw "health count $($h.Count)" }
 }
 
@@ -107,9 +107,9 @@ Test-Run 10 'Register second operator (multi-user)' {
   if (-not $u.email) { throw 'register failed' }
 }
 
-Test-Run 11 'Extreme thresholds NO-GO path' {
+Test-Run 11 'Extreme thresholds NO-GO path (auth)' {
   $body = '{"lat":55.75,"lon":37.62,"thresholds":{"windSpeedMs":{"goMax":0.1,"cautionMax":0.2}}}'
-  $eval = Invoke-RestMethod "$base/weather/evaluate" -Method POST -ContentType 'application/json' -Body $body
+  $eval = Invoke-RestMethod "$base/weather/evaluate" -Method POST -ContentType 'application/json' -Headers @{ Authorization = "Bearer $script:token" } -Body $body
   if ($eval.verdict.status -eq 'GO') { throw 'expected not GO with extreme low thresholds' }
 }
 
