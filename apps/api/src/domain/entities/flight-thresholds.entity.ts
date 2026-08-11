@@ -6,6 +6,8 @@ export interface ThresholdRange {
 }
 
 export interface FlightThresholds {
+  /** Пресет борта (orlan-10 и т.д.) */
+  preset?: 'orlan-10' | 'custom';
   windSpeedMs: ThresholdRange;
   windGustMs: ThresholdRange;
   visibilityKm: ThresholdRange;

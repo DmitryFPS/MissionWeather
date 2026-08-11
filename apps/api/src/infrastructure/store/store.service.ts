@@ -3,6 +3,7 @@ import * as bcrypt from 'bcryptjs';
 import { v4 as uuid } from 'uuid';
 import { User, AircraftProfile, Mission, UserRole } from '../../domain/entities/user.entity';
 import { FlightThresholds, EMPTY_THRESHOLDS } from '../../domain/entities/flight-thresholds.entity';
+import { ORLAN10_PROFILE_DEFAULTS } from '../../domain/presets/orlan-10.preset';
 import { DatabaseService } from '../database/database.service';
 
 type SafeUser = Omit<User, 'passwordHash'>;
@@ -20,8 +21,10 @@ export class StoreService implements OnModuleInit {
     this.usePostgres = this.db.enabled;
     if (this.usePostgres) {
       await this.seedAdminPostgres();
+      await this.seedOrlanProfilePostgres();
     } else {
       await this.seedAdminMemory();
+      await this.seedOrlanProfileMemory();
     }
   }
 
@@ -36,6 +39,61 @@ export class StoreService implements OnModuleInit {
       createdAt: new Date().toISOString(),
     };
     this.users.set(admin.id, admin);
+  }
+
+  private async seedOrlanProfileMemory() {
+    const admin = [...this.users.values()].find((u) => u.role === 'admin');
+    if (!admin) return;
+    const exists = [...this.profiles.values()].some((p) => p.thresholds.preset === 'orlan-10');
+    if (exists) return;
+    await this.createProfile(admin.id, ORLAN10_PROFILE_DEFAULTS);
+  }
+
+  private async seedOrlanProfilePostgres() {
+    const rows = await this.db.query<{ id: string }>(
+      `SELECT id FROM aircraft_profiles WHERE thresholds->>'preset' = 'orlan-10' LIMIT 1`,
+    );
+    if (rows.length) return;
+    const admins = await this.db.query<{ id: string }>(
+      `SELECT id FROM users WHERE role = 'admin' ORDER BY created_at LIMIT 1`,
+    );
+    const ownerId = admins[0]?.id;
+    if (!ownerId) return;
+    await this.createProfile(ownerId, ORLAN10_PROFILE_DEFAULTS);
+  }
+
+  async updateMission(
+    id: string,
+    userId: string,
+    role: UserRole,
+    patch: Partial<Pick<Mission, 'name' | 'waypoints' | 'plannedDurationHours' | 'profileId'>>,
+  ): Promise<Mission> {
+    const m = await this.getMission(id, userId, role);
+    if (m.ownerId !== userId && role !== 'admin') throw new ForbiddenException();
+    Object.assign(m, patch, { updatedAt: new Date().toISOString() });
+    if (this.usePostgres) {
+      await this.db.query(
+        `UPDATE missions SET name = $2, waypoints = $3, planned_duration_hours = $4, profile_id = COALESCE($5, profile_id), updated_at = NOW() WHERE id = $1`,
+        [
+          id,
+          m.name,
+          JSON.stringify(m.waypoints),
+          m.plannedDurationHours,
+          patch.profileId ?? null,
+        ],
+      );
+    }
+    return m;
+  }
+
+  async deleteMission(id: string, userId: string, role: UserRole): Promise<void> {
+    const m = await this.getMission(id, userId, role);
+    if (m.ownerId !== userId && role !== 'admin') throw new ForbiddenException();
+    if (this.usePostgres) {
+      await this.db.query('DELETE FROM missions WHERE id = $1', [id]);
+    } else {
+      this.missions.delete(id);
+    }
   }
 
   private async seedAdminPostgres() {
