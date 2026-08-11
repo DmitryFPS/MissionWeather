@@ -25,13 +25,24 @@ interface RouteForecast {
   date: string;
   departureHour: number;
   landingHour: number;
+  landingHourComputed?: boolean;
   maxAltitudeM: number;
   totalDistanceKm: number;
   flightDurationHours: number;
+  trackBearingDeg?: number;
+  headwindMs?: number;
+  crosswindMs?: number;
+  fusionSourceCount?: number;
   assessment: { status: string; checks: TthCheck[]; problemIds: string[] };
   hourlyRoute: { hour: number; timeLabel: string; tth: { status: string; checks: TthCheck[] } }[];
   problemHours: number[];
   whatIfHours: { hour: number; timeLabel: string; tth: { status: string; checks: TthCheck[] } }[];
+}
+
+interface ScenarioCompare {
+  scenarios: { departureHour: number; status: string; headwindMs?: number; crosswindMs?: number }[];
+  bestHour: number | null;
+  worstHour: number | null;
 }
 
 interface Mission {
@@ -58,7 +69,8 @@ export default function RoutesPage() {
   const [name, setName] = useState('Маршрут-1');
   const [date, setDate] = useState(today);
   const [depHour, setDepHour] = useState(10);
-  const [landHour, setLandHour] = useState(12);
+  const [landHourOverride, setLandHourOverride] = useState<number | null>(null);
+  const [compare, setCompare] = useState<ScenarioCompare | null>(null);
   const [maxAlt, setMaxAlt] = useState(3000);
   const [waypoints, setWaypoints] = useState<Waypoint[]>([
     { lat: 47.901, lon: 37.925 },
@@ -106,7 +118,7 @@ export default function RoutesPage() {
           waypoints,
           date,
           departureHour: depHour,
-          landingHour: landHour,
+          ...(landHourOverride !== null ? { landingHour: landHourOverride } : {}),
           maxAltitudeM: maxAlt,
           timezone: 'Europe/Moscow',
         }),
@@ -127,7 +139,7 @@ export default function RoutesPage() {
         name,
         profileId,
         waypoints,
-        plannedDurationHours: Math.max(landHour - depHour, 1),
+        plannedDurationHours: forecast?.flightDurationHours ?? 2,
       }),
     });
     setMissions(await api<Mission[]>('/missions'));
@@ -163,6 +175,28 @@ export default function RoutesPage() {
     downloadGpx(`${name.replace(/\s+/g, '_')}.gpx`, buildGpx(name, waypoints));
   }
 
+  async function compareScenarios() {
+    setLoading(true);
+    try {
+      const hours = [depHour - 2, depHour - 1, depHour, depHour + 1, depHour + 2].filter((h) => h >= 0 && h <= 23);
+      const result = await api<ScenarioCompare>('/scenarios/compare', {
+        method: 'POST',
+        body: JSON.stringify({
+          waypoints,
+          date,
+          departureHour: depHour,
+          maxAltitudeM: maxAlt,
+          timezone: 'Europe/Moscow',
+          departureHours: hours,
+          name,
+        }),
+      });
+      setCompare(result);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   function loadMission(m: Mission) {
     setName(m.name);
     setWaypoints(m.waypoints);
@@ -185,8 +219,14 @@ export default function RoutesPage() {
               <input type="number" min={0} max={23} value={depHour} onChange={(e) => setDepHour(Number(e.target.value))} />
             </div>
             <div>
-              <label>Посадка (ч)</label>
-              <input type="number" min={0} max={23} value={landHour} onChange={(e) => setLandHour(Number(e.target.value))} />
+              <label>Посадка (ч) {forecast?.landingHourComputed ? '· авто' : ''}</label>
+              <input
+                type="number"
+                min={0}
+                max={23}
+                value={landHourOverride ?? forecast?.landingHour ?? depHour + 2}
+                onChange={(e) => setLandHourOverride(Number(e.target.value))}
+              />
             </div>
           </div>
           <label>Макс. высота (м)</label>
@@ -217,6 +257,7 @@ export default function RoutesPage() {
             </button>
             <button type="button" className="btn ghost" onClick={saveRoute}>Сохранить</button>
             <button type="button" className="btn ghost" onClick={exportGpx}>GPX</button>
+            <button type="button" className="btn ghost" onClick={compareScenarios}>Сравнить часы</button>
             <label className="btn ghost file-btn">
               Импорт GPX
               <input type="file" accept=".gpx,application/gpx+xml" hidden onChange={(e) => e.target.files?.[0] && onGpxImport(e.target.files[0])} />
@@ -229,6 +270,9 @@ export default function RoutesPage() {
           {forecast && (
             <p>
               {forecast.totalDistanceKm.toFixed(1)} км · {forecast.flightDurationHours.toFixed(1)} ч
+              {forecast.fusionSourceCount ? ` · fusion ${forecast.fusionSourceCount}` : ''}
+              {forecast.headwindMs !== undefined ? ` · HW ${forecast.headwindMs.toFixed(1)} м/с` : ''}
+              {forecast.crosswindMs !== undefined ? ` · XW ${Math.abs(forecast.crosswindMs).toFixed(1)} м/с` : ''}
             </p>
           )}
         </div>
@@ -253,6 +297,26 @@ export default function RoutesPage() {
           {whatIfHour !== null && (
             <p className="muted">Сценарий: вылет в {String(whatIfHour).padStart(2, '0')}:00 (без пересчёта источника — из кэша часов)</p>
           )}
+        </div>
+      )}
+
+      {compare && (
+        <div className="card">
+          <h3>Сравнение сценариев A/B</h3>
+          <p>Лучший час: {compare.bestHour ?? '—'} · Худший: {compare.worstHour ?? '—'}</p>
+          <table className="ttx-table">
+            <thead><tr><th>Час</th><th>Вердикт</th><th>HW</th><th>XW</th></tr></thead>
+            <tbody>
+              {compare.scenarios.map((s) => (
+                <tr key={s.departureHour} className={statusClass(s.status)}>
+                  <td>{String(s.departureHour).padStart(2, '0')}:00</td>
+                  <td>{s.status}</td>
+                  <td>{s.headwindMs?.toFixed(1) ?? '—'}</td>
+                  <td>{s.crosswindMs !== undefined ? Math.abs(s.crosswindMs).toFixed(1) : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 

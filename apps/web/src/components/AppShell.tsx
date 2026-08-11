@@ -8,6 +8,8 @@ import { useEffect, useState } from 'react';
 const links = [
   { href: '/dashboard', label: 'Панель' },
   { href: '/routes', label: 'Маршрут' },
+  { href: '/history', label: 'История' },
+  { href: '/audit', label: 'Аудит' },
   { href: '/profiles', label: 'Профили борта' },
   { href: '/weather', label: 'Погода' },
   { href: '/missions', label: 'Миссии' },
